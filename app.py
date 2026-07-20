@@ -1,12 +1,43 @@
 from flask import Flask, request, jsonify
 import openmeteo_requests
-
+import sqlite3
+import os
 app = Flask(__name__)
+db_path = os.getenv(
+	"DATABASE_PATH")  # not giving a default bc its expected we'll always be running this in docker and not locally
+
+
+def dbSetup():
+	con = sqlite3.connect(db_path)
+	cur = con.cursor()
+
+	initialize = "CREATE TABLE IF NOT EXISTS Locations (" \
+		"id INTEGER PRIMARY KEY," \
+		"name TEXT" \
+		"latitude REAL" \
+		"longitude REAL" \
+		")"
+	con.execute(initialize)
+
+dbSetup()
+
+def displayResults(res):
+	# res looks like....
+	return jsonify([dict(row) for row in res])
 
 @app.route('/')
 def hello():
 	openmeteo = openmeteo_requests.Client()
 	url = "https://api.open-meteo.com/v1/forecast"
+
+	con = sqlite3.connect(db_path)
+	cur = con.cursor()
+	res = con.execute("SELECT * FROM Locations")
+	if res is not None:
+		return displayResults(res)
+	else:
+		print("Error getting locations")
+		#TODO skip to search bar
 
 	params = {
 		"latitude": 52.52,
@@ -14,26 +45,17 @@ def hello():
 		"hourly": ["temperature_2m", "precipitation", "wind_speed_10m"],
 		"current": ["temperature_2m", "relative_humidity_2m"],
 	}
-	responses = openmeteo.weather_api(url, params=params)
-
-	response = responses[0]
-	# print(f"Coordinates: {response.Latitude()}°N {response.Longitude()}°E")
-	# print(f"Elevation: {response.Elevation()} m asl")
-	# print(f"Timezone difference to GMT+0: {response.UtcOffsetSeconds()}s")
+	response_raw = openmeteo.weather_api(url, params=params)
+	response = response_raw[0]
 
 	current = response.Current()
 	current_temperature_2m = current.Variables(0).Value()
-	current_relative_humidity_2m = current.Variables(1).Value()
 
-	# print(f"Current time: {current.Time()}")
-	# print(f"Current temperature_2m: {current_temperature_2m}")
-	# print(f"Current relative_humidity_2m: {current_relative_humidity_2m}")
-
-	return f"Hello World!\nCurrent time: {current.Time()}\nCurrent temperature: {current_temperature_2m}"
+	return f"Current time: {current.Time()}\nCurrent temperature: {current_temperature_2m}"
 
 @app.route('/cache-me')
 def cache():
-	return "nginx will cache this response"
+	return f"nginx will cache this response"
 
 @app.route('/info')
 def info():
