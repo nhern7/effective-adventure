@@ -21,6 +21,20 @@ def dbSetup():
 
 dbSetup()
 
+def addLocation(name, latitude, longitude):
+	con = sqlite3.connect(db_path)
+	cur = con.cursor()
+	res = con.execute("SELECT 1 FROM Locations WHERE name = ?", (name,))
+	if res is not None:
+		print("Location already exists")
+	else:
+		cur.execute("INSERT INTO Locations (name, latitude, longitude) "
+				"VALUES (?, ?, ?) ",
+				(name, latitude, longitude)
+					)
+		con.commit()
+
+
 def displayResults(res):
 	# res looks like....
 	return jsonify([dict(row) for row in res])
