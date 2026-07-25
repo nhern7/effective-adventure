@@ -11,8 +11,6 @@ def dbSetup():
 	con = sqlite3.connect(DB_PATH)
 	initialize = "CREATE TABLE Locations(id, name, latitude, longitude)"
 	con.execute(initialize)
-	addLocation("Berlin", 52.52, 13.41)
-	addLocation("Middletown", 41.32, -74.52)
 	con.close()
 
 def addLocation(name, latitude, longitude):
@@ -58,6 +56,8 @@ def reset_data():
 	con.execute("DELETE FROM Locations")
 	con.commit()
 	con.close()
+
+
 	return "Data reset successfully! <br> <a href='/'><button>Back</button></a>"
 
 @app.route('/get-temp')
