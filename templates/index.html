@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Weather</title>
+</head>
+<body>
+    <div style="position: absolute; top: 10px; right: 10px;">
+        <a href="/reset-data"><button>Reset Data</button></a>
+    </div>
+    <div id="date-display">Date: {{ date }}</div>
+    <h3>Default Locations</h3>
+    <ul>
+        {% for item in locations %}
+            <li>
+                <button onclick="getTemperatureHandler('{{ item[2] }}', '{{ item[3] }}')">
+                    {{ item[1] }}
+                </button>
+            </li>
+        {% endfor %}
+    </ul>
+    <h3>Weather Report</h3>
+    <p>Note: may be off by 5ish degrees because reasons</p>
+    <div id="loading" style="display: none;">Loading...</div>
+    <div id="temperature-result"></div>
+
+    <script>
+        function getTemperatureHandler(lat, long) {
+            const loading = document.getElementById('loading');
+            const result = document.getElementById('temperature-result');
+            
+            loading.style.display = 'block';
+            result.innerHTML = '';
+            
+            fetch(`/get-temp?lat=${lat}&long=${long}`)
+                .then(response => response.text())
+                .then(data => {
+                    loading.style.display = 'none';
+                    result.innerHTML = data;
+                })
+                .catch(error => {
+                    loading.style.display = 'none';
+                    console.error('Error:', error);
+                    result.innerText = 'Error fetching temperature';
+                });
+        }
+    </script>
+</body>
+</html>

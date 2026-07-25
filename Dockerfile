@@ -1,4 +1,4 @@
-FROM python:3.9.2-alpine
+FROM python
 
 # get curl for healthchecks
 RUN apk add curl
@@ -28,8 +28,3 @@ RUN pip install -r requirements.txt
 EXPOSE 5000
 
 CMD ["python", "app.py"]
-
-
- FROM python:3.9.2-alpine
-flask-app-1  |          ^
-flask-app-1  | SyntaxError: invalid syntax
